@@ -1,0 +1,88 @@
+from sklearn.neural_network import MLPClassifier
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, precision_score
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+import joblib
+import numpy as np
+
+# 加载数据集
+##### X y 
+
+
+# 数据预处理：标准化特征
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 划分数据集为训练集和测试集
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# 创建MLP分类器
+mlp_classifier = MLPClassifier(hidden_layer_sizes=(100, 50), max_iter=500, alpha=0.0001,
+                               solver='adam', random_state=42)
+
+# 在训练集上训练模型
+mlp_classifier.fit(X_train, y_train)
+
+# 在测试集上进行预测
+y_pred_test = mlp_classifier.predict(X_test)
+
+y_pred_train = mlp_classifier.predict(X_train)
+
+# 保存模型参数
+joblib.dump(mlp_classifier, 'mlp_model.joblib')
+
+# 计算测试集准确率
+accuracy_test = accuracy_score(y_test, y_pred_test)
+print("Test Accuracy:", accuracy_test)
+
+# 计算训练集准确率
+accuracy_train = accuracy_score(y_train, y_pred_train)
+print("Train Accuracy:", accuracy_train)
+
+# 计算测试集混淆矩阵
+conf_matrix_test = confusion_matrix(y_test, y_pred_test)
+
+# 计算训练集混淆矩阵
+conf_matrix_train = confusion_matrix(y_train, y_pred_train)
+
+# 计算每个类别的准确率
+precision_0 = precision_score(y_test, y_pred_test, pos_label=0)
+precision_1 = precision_score(y_test, y_pred_test, pos_label=1)
+
+# 定义类别标签字符串
+class_labels = ["Repeater", "One off burst"]
+
+# 可视化混淆矩阵
+plt.figure(figsize=(16, 6))
+
+plt.subplot(1, 2, 1)
+plt.imshow(conf_matrix_train, cmap='Blues', interpolation='nearest')
+plt.colorbar(label='Number of Samples')
+plt.title("Training Confusion Matrix\nTrain Accuracy: {:.2f}".format(accuracy_train))
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.xticks(ticks=np.arange(len(class_labels)), labels=class_labels)
+plt.yticks(ticks=np.arange(len(class_labels)), labels=class_labels)
+for i in range(conf_matrix_train.shape[0]):
+    for j in range(conf_matrix_train.shape[1]):
+        plt.text(j, i, conf_matrix_train[i, j], ha='center', va='center', color='black', fontsize=13)
+
+plt.subplot(1, 2, 2)
+plt.imshow(conf_matrix_test, cmap='Blues', interpolation='nearest')
+plt.colorbar(label='Number of Samples')
+plt.title("Testing Confusion Matrix\nTest Accuracy: {:.2f}".format(accuracy_test))
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.xticks(ticks=np.arange(len(class_labels)), labels=class_labels)
+plt.yticks(ticks=np.arange(len(class_labels)), labels=class_labels)
+for i in range(conf_matrix_test.shape[0]):
+    for j in range(conf_matrix_test.shape[1]):
+        plt.text(j, i, conf_matrix_test[i, j], ha='center', va='center', color='black', fontsize=13)
+
+plt.tight_layout()
+#### plt.savefig('C:/Users/86135/Desktop/本科生科研/FRB/正式研究/bp神经网络/10_10_10_10000_0001_matrix.png', dpi=1000)
+plt.show()
